@@ -1,10 +1,8 @@
-name: MLflow CI/CD Pipeline - Loan Approval
+name: MLflow CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -25,39 +23,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install mlflow==2.19.0 pandas scikit-learn numpy matplotlib seaborn protobuf==3.20.3
 
-      - name: Run MLflow Project
+      - name: Run training
         run: |
-          mlflow run MLProject/ --env-manager=local
+          cd MLProject
+          python modelling.py
 
-      - name: Get Exact Model Path
-        id: get_model_path
-        run: |
-          # Cari file 'MLmodel' yang dibuat oleh mlflow.sklearn.log_model
-          MLMODEL_FILE=$(find . -name "MLmodel" -type f | head -n 1)
-          echo "File MLmodel ditemukan di: $MLMODEL_FILE"
-
-          if [ -z "$MLMODEL_FILE" ]; then
-            echo "ERROR: File MLmodel tidak ditemukan!"
-            echo "=== Struktur direktori saat ini ==="
-            find . -maxdepth 6 -type d | sort
-            exit 1
-          fi
-
-          MODEL_DIR=$(dirname "$MLMODEL_FILE")
-          echo "Direktori model: $MODEL_DIR"
-
-          # Menyimpan path tersebut sebagai variabel environment
-          echo "MODEL_DIR=$MODEL_DIR" >> $GITHUB_ENV
-
-      - name: Upload Artifact to GitHub
+      - name: Upload MLflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: model-artifacts
-          path: ${{ env.MODEL_DIR }}
+          name: mlflow-artifacts
+          path: MLProject/mlruns/
 
       - name: Build Docker Model
         run: |
-          mlflow models build-docker -m ${{ env.MODEL_DIR }} -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-model:latest --enable-mlserver
+          cd MLProject
+          mlflow models build-docker -m mlruns/0/*/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-model:latest
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
