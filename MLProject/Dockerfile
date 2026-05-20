@@ -2,9 +2,8 @@ FROM python:3.12.7-slim
 
 WORKDIR /app
 
-# Copy requirements
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies langsung (tanpa requirements.txt)
+RUN pip install --no-cache-dir mlflow==2.19.0 scikit-learn pandas numpy protobuf==3.20.3
 
 # Copy semua file project
 COPY . .
