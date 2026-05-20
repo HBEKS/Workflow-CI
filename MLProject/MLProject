@@ -4,7 +4,4 @@ conda_env: conda.yaml
 
 entry_points:
   main:
-    parameters:
-      input_data: {type: str, default: "loan_preprocessing/loan_processed.csv"}
-      experiment_name: {type: str, default: "CI_Workflow"}
-    command: "python modelling.py --input_data {input_data} --experiment_name {experiment_name}"
+    command: "python modelling.py"
