@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     # Coba beberapa kemungkinan path
     possible_paths = [
-        os.path.join(script_dir, 'namadataset_preprocessing', 'loan_processed.csv'),
+        os.path.join(script_dir, 'loan_preprocessing', 'loan_processed.csv'),
         os.path.join(script_dir, 'loan_processed.csv'),
         os.path.join(os.path.dirname(script_dir), 'loan_preprocessing', 'loan_processed.csv'),
         'namadataset_preprocessing/loan_processed.csv',
