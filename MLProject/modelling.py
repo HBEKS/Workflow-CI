@@ -37,9 +37,6 @@ if __name__ == "__main__":
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # MLflow setup (biarkan default, tidak perlu set_tracking_uri)
-    mlflow.set_experiment("CI_Workflow")
-
     with mlflow.start_run() as run:
         # Log hyperparameters
         mlflow.log_param("model_type", "RandomForestClassifier")
