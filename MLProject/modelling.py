@@ -20,7 +20,7 @@ mlflow.set_experiment("CI_Workflow")
 # ============================================
 # LOAD DATA
 # ============================================
-df = pd.read_csv('namadataset_preprocessing/loan_processed.csv')
+df = pd.read_csv('loan_preprocessing/loan_processed.csv')
 print(f"✅ Data loaded: {df.shape}")
 
 X = df.drop('loan_status', axis=1)
