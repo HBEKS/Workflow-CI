@@ -2,7 +2,8 @@ name: MLflow CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -13,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12.7
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12.7"
@@ -21,31 +22,38 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mlflow==2.19.0 pandas scikit-learn numpy matplotlib seaborn protobuf==3.20.3
+          pip install mlflow pandas scikit-learn
 
-      - name: Run training with MLflow Project
+      - name: Run MLflow Project
         run: |
-          rm -rf MLProject/mlruns
           mlflow run MLProject/ --env-manager=local
-          
-      - name: Find model path
-        id: find_model
-        run: |
-          cd MLProject
-          MODEL_PATH=$(find mlruns -name "MLmodel" -type f | head -1 | xargs dirname)
-          echo "MODEL_PATH=$MODEL_PATH" >> $GITHUB_ENV
-          echo "Model found at: $MODEL_PATH"
 
-      - name: Upload MLflow artifacts
+      - name: Get Exact Model Path
+        id: get_model_path
+        run: |
+          MLMODEL_FILE=$(find . -name "MLmodel" -type f | head -n 1)
+          echo "File MLmodel ditemukan di: $MLMODEL_FILE"
+
+          if [ -z "$MLMODEL_FILE" ]; then
+            echo "ERROR: File MLmodel tidak ditemukan!"
+            echo "=== Struktur direktori saat ini ==="
+            find . -maxdepth 6 -type d | sort
+            exit 1
+          fi
+
+          MODEL_DIR=$(dirname "$MLMODEL_FILE")
+          echo "Direktori model: $MODEL_DIR"
+          echo "MODEL_DIR=$MODEL_DIR" >> $GITHUB_ENV
+
+      - name: Upload Artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: mlflow-artifacts
-          path: MLProject/mlruns/
+          name: model-artifacts
+          path: ${{ env.MODEL_DIR }}
 
-      - name: Build Docker Image
+      - name: Build Docker Model
         run: |
-          cd MLProject
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/loan-approval-model:latest .
+          mlflow models build-docker -m ${{ env.MODEL_DIR }} -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-model:latest
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
