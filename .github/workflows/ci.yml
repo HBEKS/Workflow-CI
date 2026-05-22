@@ -25,8 +25,9 @@ jobs:
 
       - name: Run training with MLflow Project
         run: |
+          rm -rf MLProject/mlruns
           mlflow run MLProject/ --env-manager=local
-
+          
       - name: Find model path
         id: find_model
         run: |
